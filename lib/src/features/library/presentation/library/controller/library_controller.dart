@@ -18,23 +18,28 @@ import '../../../domain/category/category_model.dart';
 
 part 'library_controller.g.dart';
 
-@riverpod
 Future<List<MangaDto>?> categoryMangaList(Ref ref, int categoryId) => ref
     .watch(categoryRepositoryProvider)
     .getMangasFromCategory(categoryId: categoryId);
 
-@riverpod
-class LibraryDisplayCategory extends _$LibraryDisplayCategory
+// GRAPHQL_CODEGEN_BUG
+final categoryMangaListProvider = FutureProvider.autoDispose.family<List<MangaDto>?, int>(categoryMangaList);
+
+class LibraryDisplayCategory extends Notifier<CategoryDto?>
     with StateProviderMixin<CategoryDto?> {
   @override
   CategoryDto? build() => null;
 }
 
-@riverpod
-class CategoryMangaListWithQueryAndFilter
-    extends _$CategoryMangaListWithQueryAndFilter {
+// GRAPHQL_CODEGEN_BUG
+final libraryDisplayCategoryProvider = NotifierProvider.autoDispose<LibraryDisplayCategory, CategoryDto?>(LibraryDisplayCategory.new);
+
+class CategoryMangaListWithQueryAndFilter extends Notifier<AsyncValue<List<MangaDto>?>> {
+  CategoryMangaListWithQueryAndFilter(this.categoryId);
+  final int categoryId;
+
   @override
-  AsyncValue<List<MangaDto>?> build({required int categoryId}) {
+  AsyncValue<List<MangaDto>?> build() {
     final mangaList = ref.watch(categoryMangaListProvider(categoryId));
     final query = ref.watch(libraryQueryProvider);
     final mangaFilterUnread = ref.watch(libraryMangaFilterUnreadProvider);
@@ -87,7 +92,7 @@ class CategoryMangaListWithQueryAndFilter
     }
 
     return mangaList.map<AsyncValue<List<MangaDto>?>>(
-      data: (e) => AsyncData(e.valueOrNull?.where(applyMangaFilter).toList()
+      data: (e) => AsyncData(e.asData?.value?.where(applyMangaFilter).toList()
         ?..sort(applyMangaSort)),
       error: (e) => e,
       loading: (e) => e,
@@ -97,35 +102,39 @@ class CategoryMangaListWithQueryAndFilter
   void invalidate() => ref.invalidate(categoryMangaListProvider(categoryId));
 }
 
+// GRAPHQL_CODEGEN_BUG
+final categoryMangaListWithQueryAndFilterProvider = NotifierProvider.autoDispose.family
+  <CategoryMangaListWithQueryAndFilter, AsyncValue<List<MangaDto>?>, int>(CategoryMangaListWithQueryAndFilter.new);
+
 @riverpod
-class LibraryQuery extends _$LibraryQuery with StateProviderMixin<String?> {
+class LibraryQuery extends Notifier<String?> with StateProviderMixin<String?> {
   @override
   String? build() => null;
 }
 
 @riverpod
-class LibraryMangaFilterDownloaded extends _$LibraryMangaFilterDownloaded
+class LibraryMangaFilterDownloaded extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.mangaFilterDownloaded);
 }
 
 @riverpod
-class LibraryMangaFilterUnread extends _$LibraryMangaFilterUnread
+class LibraryMangaFilterUnread extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.mangaFilterUnread);
 }
 
 @riverpod
-class LibraryMangaFilterCompleted extends _$LibraryMangaFilterCompleted
+class LibraryMangaFilterCompleted extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.mangaFilterCompleted);
 }
 
 @riverpod
-class LibraryMangaSort extends _$LibraryMangaSort
+class LibraryMangaSort extends Notifier<MangaSort?>
     with SharedPreferenceEnumClientMixin<MangaSort> {
   @override
   MangaSort? build() => initialize(
@@ -135,14 +144,14 @@ class LibraryMangaSort extends _$LibraryMangaSort
 }
 
 @riverpod
-class LibraryMangaSortDirection extends _$LibraryMangaSortDirection
+class LibraryMangaSortDirection extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.mangaSortDirection);
 }
 
 @riverpod
-class LibraryDisplayMode extends _$LibraryDisplayMode
+class LibraryDisplayMode extends Notifier<DisplayMode?>
     with SharedPreferenceEnumClientMixin<DisplayMode> {
   @override
   DisplayMode? build() => initialize(

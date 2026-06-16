@@ -21,20 +21,24 @@ import 'source_manga_list_view.dart';
 class SourceMangaDisplayView extends ConsumerWidget {
   const SourceMangaDisplayView({
     super.key,
-    required this.controller,
+    required this.state,
+    required this.fetchNextPage,
     required this.sourceId,
     required this.sourceType,
     this.source,
   });
 
-  final PagingController<int, MangaDto> controller;
+  final PagingState<int, MangaDto> state;
+  final NextPageCallback fetchNextPage;
   final SourceDto? source;
   final String sourceId;
   final SourceType sourceType;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final DisplayMode displayMode = ref.watch(sourceDisplayModeProvider) ??
         DBKeys.sourceDisplayMode.initial;
+
     toggleFavorite(MangaDto item) async {
       if (item.inLibrary.ifNull()) {
         bool removeManga = false;
@@ -76,15 +80,17 @@ class SourceMangaDisplayView extends ConsumerWidget {
       DisplayMode.grid => SourceMangaGridView(
           sourceId: sourceId,
           sourceType: sourceType,
-          controller: controller,
+          state: state,
+          fetchNextPage: fetchNextPage,
           source: source,
           toggleFavorite: toggleFavorite,
         ),
       DisplayMode.list || DisplayMode.descriptiveList => SourceMangaListView(
-          controller: controller,
+          state: state,
+          fetchNextPage: fetchNextPage,
           source: source,
           toggleFavorite: toggleFavorite,
-        )
+        ),
     };
   }
 }

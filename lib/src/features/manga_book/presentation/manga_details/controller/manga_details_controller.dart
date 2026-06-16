@@ -18,10 +18,12 @@ import '../../../domain/manga/manga_model.dart';
 
 part 'manga_details_controller.g.dart';
 
-@riverpod
-class MangaWithId extends _$MangaWithId {
+class MangaWithId extends AsyncNotifier<MangaDto?> {
+  MangaWithId(this.mangaId);
+  final int mangaId;
+
   @override
-  Future<MangaDto?> build({required int mangaId}) =>
+  Future<MangaDto?> build() =>
       ref.watch(mangaBookRepositoryProvider).getManga(mangaId: mangaId);
 
   Future<void> refresh() async {
@@ -29,10 +31,15 @@ class MangaWithId extends _$MangaWithId {
   }
 }
 
-@riverpod
-class MangaChapterList extends _$MangaChapterList {
+// GRAPHQL_CODEGEN_BUG
+final mangaWithIdProvider = AsyncNotifierProvider.autoDispose.family<MangaWithId, MangaDto?, int>(MangaWithId.new);
+
+class MangaChapterList extends AsyncNotifier<List<ChapterDto>?> {
+  MangaChapterList(this.mangaId);
+  final int mangaId;
+
   @override
-  Future<List<ChapterDto>?> build({required int mangaId}) async {
+  Future<List<ChapterDto>?> build() async {
     final result =
         await ref.watch(mangaBookRepositoryProvider).getChapterList(mangaId);
     ref.keepAlive();
@@ -52,7 +59,7 @@ class MangaChapterList extends _$MangaChapterList {
 
   void updateChapter(int index, ChapterDto chapter) {
     try {
-      final newList = [...?state.valueOrNull];
+      final newList = [...?state.asData?.value];
       newList[index] = chapter;
       state = AsyncData<List<ChapterDto>?>(newList).copyWithPrevious(state);
     } catch (e) {
@@ -61,9 +68,12 @@ class MangaChapterList extends _$MangaChapterList {
   }
 }
 
+// GRAPHQL_CODEGEN_BUG
+final mangaChapterListProvider = AsyncNotifierProvider.autoDispose.family<MangaChapterList, List<ChapterDto>?, int>(MangaChapterList.new);
+
 @riverpod
 Set<String> mangaScanlatorList(Ref ref, {required int mangaId}) {
-  final chapterList = ref.watch(mangaChapterListProvider(mangaId: mangaId));
+  final chapterList = ref.watch(mangaChapterListProvider(mangaId));
   final scanlatorList = <String>{};
   chapterList.whenData((data) {
     if (data == null) return;
@@ -76,15 +86,17 @@ Set<String> mangaScanlatorList(Ref ref, {required int mangaId}) {
   return scanlatorList;
 }
 
-@riverpod
-class MangaChapterFilterScanlator extends _$MangaChapterFilterScanlator {
+class MangaChapterFilterScanlator extends Notifier<String> {
+  MangaChapterFilterScanlator(this.mangaId);
+  final int mangaId;
+
   @override
-  String build({required int mangaId}) {
-    final manga = ref.watch(mangaWithIdProvider(mangaId: mangaId));
-    return manga.valueOrNull?.metaData.scanlator ?? MangaMetaKeys.scanlator.key;
+  String build() {
+    final manga = ref.watch(mangaWithIdProvider(mangaId));
+    return manga.asData?.value?.metaData.scanlator ?? MangaMetaKeys.scanlator.key;
   }
 
-  void update(String? scanlator) async {
+  void updateScanlator(String? scanlator) async {
     await AsyncValue.guard(
       () => ref.read(mangaBookRepositoryProvider).patchMangaMeta(
             mangaId: mangaId,
@@ -92,17 +104,18 @@ class MangaChapterFilterScanlator extends _$MangaChapterFilterScanlator {
             value: scanlator ?? MangaMetaKeys.scanlator.key,
           ),
     );
-    ref.invalidate(mangaWithIdProvider(mangaId: mangaId));
+    ref.invalidate(mangaWithIdProvider(mangaId));
     state = scanlator ?? MangaMetaKeys.scanlator.key;
   }
 }
 
-@riverpod
-AsyncValue<List<ChapterDto>?> mangaChapterListWithFilter(
-  Ref ref, {
-  required int mangaId,
-}) {
-  final chapterList = ref.watch(mangaChapterListProvider(mangaId: mangaId));
+final mangaChapterFilterScanlatorProvider =
+    NotifierProvider.autoDispose.family<MangaChapterFilterScanlator, String, int>(
+  (mangaId) => MangaChapterFilterScanlator(mangaId),
+);
+
+AsyncValue<List<ChapterDto>?> mangaChapterListWithFilter(Ref ref, {required int mangaId}) {
+  final chapterList = ref.watch(mangaChapterListProvider(mangaId));
   final chapterFilterUnread = ref.watch(mangaChapterFilterUnreadProvider);
   final chapterFilterDownloaded =
       ref.watch(mangaChapterFilterDownloadedProvider);
@@ -113,7 +126,7 @@ AsyncValue<List<ChapterDto>?> mangaChapterListWithFilter(
       ref.watch(mangaChapterSortDirectionProvider).ifNull(true);
 
   final chapterFilterScanlator =
-      ref.watch(mangaChapterFilterScanlatorProvider(mangaId: mangaId));
+      ref.watch(mangaChapterFilterScanlatorProvider(mangaId));
 
   bool applyChapterFilter(ChapterDto chapter) {
     if (chapterFilterUnread != null &&
@@ -155,16 +168,18 @@ AsyncValue<List<ChapterDto>?> mangaChapterListWithFilter(
   );
 }
 
-@riverpod
-ChapterDto? firstUnreadInFilteredChapterList(
-  Ref ref, {
-  required int mangaId,
-}) {
+// GRAPHQL_CODEGEN_BUG
+final mangaChapterListWithFilterProvider =
+    Provider.autoDispose.family<AsyncValue<List<ChapterDto>?>, int>(
+  (ref, mangaId) => mangaChapterListWithFilter(ref, mangaId: mangaId)
+);
+
+ChapterDto? firstUnreadInFilteredChapterList(Ref ref, {required int mangaId}) {
   final isAscSorted = ref.watch(mangaChapterSortDirectionProvider) ??
       DBKeys.chapterSortDirection.initial;
   final filteredList = ref
-      .watch(mangaChapterListWithFilterProvider(mangaId: mangaId))
-      .valueOrNull;
+      .watch(mangaChapterListWithFilterProvider(mangaId))
+      .asData?.value;
   if (filteredList == null) {
     return null;
   } else {
@@ -178,18 +193,24 @@ ChapterDto? firstUnreadInFilteredChapterList(
   }
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final firstUnreadInFilteredChapterListProvider =
+    Provider.autoDispose.family<ChapterDto?, int>(
+  (ref, mangaId) => firstUnreadInFilteredChapterList(ref, mangaId: mangaId),
+);
+
 ({ChapterDto? first, ChapterDto? second})? getNextAndPreviousChapters(
   Ref ref, {
   required int mangaId,
   required int chapterId,
-  bool shouldAscSort = true,
+  bool? shouldAscSort,
 }) {
+  bool shouldAscSortWithDefault = shouldAscSort ?? true;
   final isAscSorted = ref.watch(mangaChapterSortDirectionProvider) ??
       DBKeys.chapterSortDirection.initial;
   final filteredList = ref
-      .watch(mangaChapterListWithFilterProvider(mangaId: mangaId))
-      .valueOrNull;
+      .watch(mangaChapterListWithFilterProvider(mangaId))
+      .asData?.value;
   if (filteredList == null) {
     return null;
   } else {
@@ -199,54 +220,68 @@ ChapterDto? firstUnreadInFilteredChapterList(
     final nextChapter =
         current < (filteredList.length - 1) ? filteredList[current + 1] : null;
     return (
-      first: shouldAscSort && isAscSorted ? nextChapter : prevChapter,
-      second: shouldAscSort && isAscSorted ? prevChapter : nextChapter,
+      first: shouldAscSortWithDefault && isAscSorted ? nextChapter : prevChapter,
+      second: shouldAscSortWithDefault && isAscSorted ? prevChapter : nextChapter,
     );
   }
 }
 
+// GRAPHQL_CODEGEN_BUG
+final getNextAndPreviousChaptersProvider = Provider.autoDispose.family<
+  ({ChapterDto? first, ChapterDto? second})?,
+  ({int mangaId, int chapterId, bool? shouldAscSort})>(
+  (ref, arg) => getNextAndPreviousChapters(
+    ref,
+    mangaId: arg.mangaId,
+    chapterId: arg.chapterId,
+    shouldAscSort: arg.shouldAscSort
+  )
+);
+
 @riverpod
-class MangaChapterSort extends _$MangaChapterSort
+class MangaChapterSort extends Notifier<ChapterSort?>
     with SharedPreferenceEnumClientMixin<ChapterSort> {
   @override
   ChapterSort? build() => initialize(
-        DBKeys.chapterSort,
-        enumList: ChapterSort.values,
-      );
+    DBKeys.chapterSort,
+    enumList: ChapterSort.values,
+  );
 }
 
 @riverpod
-class MangaChapterSortDirection extends _$MangaChapterSortDirection
+class MangaChapterSortDirection extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.chapterSortDirection);
 }
 
 @riverpod
-class MangaChapterFilterDownloaded extends _$MangaChapterFilterDownloaded
+class MangaChapterFilterDownloaded extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.chapterFilterDownloaded);
 }
 
 @riverpod
-class MangaChapterFilterUnread extends _$MangaChapterFilterUnread
+class MangaChapterFilterUnread extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.chapterFilterUnread);
 }
 
 @riverpod
-class MangaChapterFilterBookmarked extends _$MangaChapterFilterBookmarked
+class MangaChapterFilterBookmarked extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.chapterFilterBookmarked);
 }
 
-@riverpod
-class MangaCategoryList extends _$MangaCategoryList {
+class MangaCategoryList extends AsyncNotifier<Map<String, CategoryDto>?> {
+  MangaCategoryList(this.mangaId);
+  final int mangaId;
+
   @override
-  FutureOr<Map<String, CategoryDto>?> build(int mangaId) async {
+  FutureOr<Map<String, CategoryDto>?> build() async {
     final result = await ref
         .watch(mangaBookRepositoryProvider)
         .getMangaCategoryList(mangaId: mangaId);
@@ -264,3 +299,6 @@ class MangaCategoryList extends _$MangaCategoryList {
         });
   }
 }
+
+// GRAPHQL_CODEGEN_BUG
+final mangaCategoryListProvider = AsyncNotifierProvider.autoDispose.family<MangaCategoryList, Map<String, CategoryDto>?, int>(MangaCategoryList.new);

@@ -18,15 +18,15 @@ class UpdateStatusFab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final updateStatus = ref.watch(updatesSocketProvider);
-    final showStatus = (updateStatus.valueOrNull?.isUpdateChecking).ifNull();
+    final showStatus = (updateStatus.asData?.value?.isUpdateChecking).ifNull();
     return FloatingActionButton.extended(
       icon: showStatus ? null : const Icon(Icons.refresh_rounded),
       onPressed: () => showStatus
           ? const UpdateStatusRoute().push(context)
           : ref.read(updatesRepositoryProvider).fetchUpdates(),
       label: showStatus
-          ? Text("${updateStatus.valueOrNull?.updateChecked.padLeft()}"
-              "/${updateStatus.valueOrNull?.total.padLeft()}")
+          ? Text("${updateStatus.asData?.value?.updateChecked.padLeft()}"
+              "/${updateStatus.asData?.value?.total.padLeft()}")
           : Text(context.l10n.update),
     );
   }

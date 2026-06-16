@@ -5,16 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../utils/extensions/custom_extensions.dart';
 import '../../../data/category_repository.dart';
 import '../../../domain/category/category_model.dart';
 
-part 'edit_category_controller.g.dart';
-
-@riverpod
-class CategoryController extends _$CategoryController {
+class CategoryController extends AsyncNotifier<List<CategoryDto>?> {
   @override
   Future<List<CategoryDto>?> build() =>
       ref.watch(categoryRepositoryProvider).getCategoryList();
@@ -53,21 +49,30 @@ class CategoryController extends _$CategoryController {
   }
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final categoryControllerProvider = AsyncNotifierProvider.autoDispose<CategoryController, List<CategoryDto>?>(CategoryController.new);
+
 List<CategoryDto>? categoryListQuery(
   Ref ref, {
   required String query,
 }) {
-  final categoryList = ref.watch(categoryControllerProvider).valueOrNull;
+  final categoryList = ref.watch(categoryControllerProvider).asData?.value;
   return categoryList
       ?.where((element) => (element.name.query(query)).ifNull())
       .toList();
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final categoryListQueryProvider = Provider.autoDispose.family<List<CategoryDto>?, String>(
+  (ref, query) => categoryListQuery(ref, query: query)
+);
+
 AsyncValue<List<CategoryDto>?> nonZeroCategoryList(Ref ref) {
   final categoryList = ref.watch(categoryControllerProvider);
-  return categoryList.copyWithData((_) => categoryList.valueOrNull
+  return categoryList.copyWithData((_) => categoryList.asData?.value
       ?.where((element) => element.mangas.totalCount > 0)
       .toList());
 }
+
+// GRAPHQL_CODEGEN_BUG
+final nonZeroCategoryListProvider = Provider.autoDispose<AsyncValue<List<CategoryDto>?>>(nonZeroCategoryList);

@@ -15,16 +15,24 @@ import '../../../domain/source/source_model.dart';
 
 part 'source_controller.g.dart';
 
-@riverpod
 Future<List<SourceDto>?> sourceList(Ref ref) =>
     ref.watch(sourceRepositoryProvider).getSourceList();
 
+// GRAPHQL_CODEGEN_BUG
+final sourceListProvider = FutureProvider.autoDispose<List<SourceDto>?>((ref) => sourceList(ref));
+
 @riverpod
+class SourceLastUsed extends Notifier<String?>
+    with SharedPreferenceClientMixin<String> {
+  @override
+  String? build() => initialize(DBKeys.sourceLastUsed);
+}
+
 AsyncValue<Map<String, List<SourceDto>>> sourceMap(Ref ref) {
   final sourceMap = <String, List<SourceDto>>{};
   final sourceListData = ref.watch(sourceListProvider);
   final sourceLastUsed = ref.watch(sourceLastUsedProvider);
-  for (final e in [...?sourceListData.valueOrNull]) {
+  for (final e in [...?sourceListData.asData?.value]) {
     sourceMap.update(
       e.language?.code ?? "other",
       (value) => [...value, e],
@@ -35,11 +43,21 @@ AsyncValue<Map<String, List<SourceDto>>> sourceMap(Ref ref) {
   return sourceListData.copyWithData((e) => sourceMap);
 }
 
+// GRAPHQL_CODEGEN_BUG
+final sourceMapProvider = Provider.autoDispose<AsyncValue<Map<String, List<SourceDto>>>>(sourceMap);
+
 @riverpod
-class SourceFilterLangMap extends _$SourceFilterLangMap {
+class SourceLanguageFilter extends Notifier<List<String>?>
+    with SharedPreferenceClientMixin<List<String>> {
+  @override
+  List<String>? build() => initialize(DBKeys.sourceLanguageFilter);
+}
+
+@riverpod
+class SourceFilterLangMap extends Notifier<Map<String, bool>> {
   @override
   Map<String, bool> build() {
-    final sourceMap = {...?ref.watch(sourceMapProvider).valueOrNull};
+    final sourceMap = {...?ref.watch(sourceMapProvider).asData?.value};
     final enabledLanguages = ref.watch(sourceLanguageFilterProvider);
     sourceMap.remove("lastUsed");
     sourceMap.remove("localsourcelang");
@@ -52,20 +70,18 @@ class SourceFilterLangMap extends _$SourceFilterLangMap {
   void toggleLang(String langCode, bool value) {
     if (!value) {
       ref.read(sourceLanguageFilterProvider.notifier).updateWithPreviousState(
-          (enabledLanguages) => [...?enabledLanguages]..remove(langCode));
+        (enabledLanguages) => [...?enabledLanguages]..remove(langCode));
     } else {
       ref.read(sourceLanguageFilterProvider.notifier).updateWithPreviousState(
-            (enabledLanguages) => {...?enabledLanguages, langCode}.toList(),
-          );
+        (enabledLanguages) => {...?enabledLanguages, langCode}.toList());
     }
   }
 }
 
-@riverpod
 AsyncValue<Map<String, List<SourceDto>>?> sourceMapFiltered(Ref ref) {
   final sourceMapFiltered = <String, List<SourceDto>>{};
   final sourceMapData = ref.watch(sourceMapProvider);
-  final sourceMap = {...?sourceMapData.valueOrNull};
+  final sourceMap = {...?sourceMapData.asData?.value};
   final enabledLangList = [...?ref.watch(sourceLanguageFilterProvider)]..sort();
   for (final e in enabledLangList) {
     if (sourceMap.containsKey(e)) sourceMapFiltered[e] = sourceMap[e]!;
@@ -73,9 +89,11 @@ AsyncValue<Map<String, List<SourceDto>>?> sourceMapFiltered(Ref ref) {
   return sourceMapData.copyWithData((e) => sourceMapFiltered);
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final sourceMapFilteredProvider = Provider.autoDispose<AsyncValue<Map<String, List<SourceDto>>?>>(sourceMapFiltered);
+
 List<SourceDto>? sourceQuery(Ref ref, {String? query}) {
-  final sourceMap = {...?ref.watch(sourceMapFilteredProvider).valueOrNull}
+  final sourceMap = {...?ref.watch(sourceMapFilteredProvider).asData?.value}
     ..remove('lastUsed');
   if (query.isNotBlank) {
     return sourceMap.values
@@ -87,16 +105,8 @@ List<SourceDto>? sourceQuery(Ref ref, {String? query}) {
   return sourceMap.values.expand((list) => list).toList();
 }
 
-@riverpod
-class SourceLanguageFilter extends _$SourceLanguageFilter
-    with SharedPreferenceClientMixin<List<String>> {
-  @override
-  List<String>? build() => initialize(DBKeys.sourceLanguageFilter);
-}
-
-@riverpod
-class SourceLastUsed extends _$SourceLastUsed
-    with SharedPreferenceClientMixin<String> {
-  @override
-  String? build() => initialize(DBKeys.sourceLastUsed);
-}
+// GRAPHQL_CODEGEN_BUG
+final sourceQueryProvider = Provider.autoDispose.family
+  <List<SourceDto>?, String?>(
+    (ref, query) => sourceQuery(ref, query: query)
+);

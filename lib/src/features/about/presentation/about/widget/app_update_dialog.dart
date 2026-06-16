@@ -36,7 +36,7 @@ void appUpdateDialog({
                     url ?? AppUrls.sorayomiLatestReleaseUrl.url, toast);
                 Navigator.pop(context);
               },
-              icon: const Icon(FontAwesomeIcons.github),
+              icon: Icon(FontAwesomeIcons.github.data),
               label: Text(context.l10n.gitHub),
             ),
           ],

@@ -36,7 +36,7 @@ class SmallScreenMangaDetails extends ConsumerWidget {
   final AsyncValueSetter<bool> onDescriptionRefresh;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filteredChapterList = chapterList.valueOrNull;
+    final filteredChapterList = chapterList.asData?.value;
     return RefreshIndicator(
       onRefresh: () => onRefresh(true),
       child: CustomScrollView(

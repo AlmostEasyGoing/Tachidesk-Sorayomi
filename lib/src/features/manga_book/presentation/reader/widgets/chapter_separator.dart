@@ -30,8 +30,8 @@ class ChapterSeparator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nextPrevChapterPair = ref.watch(
-      getNextAndPreviousChaptersProvider(
-          mangaId: manga.id, chapterId: chapter.id),
+      getNextAndPreviousChaptersProvider((
+          mangaId: manga.id, chapterId: chapter.id, shouldAscSort: null)),
     );
     final navigationLayout = ref.watch(readerNavigationLayoutKeyProvider);
     final showPrevNextButtons = manga.metaData.readerNavigationLayout ==

@@ -64,11 +64,12 @@ class BackupAndRestoreSection extends HookConsumerWidget {
 
     String? backupId;
     bool restoreBackup = true;
-    if (validateResult.valueOrNull.isNotBlank && context.mounted) {
+    final validateResultValue = validateResult.asData?.value;
+    if (validateResultValue?.isNotBlank == true && context.mounted) {
       restoreBackup = (await showDialog<bool>(
         context: context,
         builder: (context) =>
-            BackupMissingDialog(backupMissing: validateResult.valueOrNull!),
+            BackupMissingDialog(backupMissing: validateResultValue!),
       ))
           .ifNull();
     }

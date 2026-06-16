@@ -19,7 +19,7 @@ class InstallExtensionFile extends ConsumerWidget {
 
   void extensionFilePicker(WidgetRef ref, BuildContext context) async {
     final toast = ref.read(toastProvider);
-    final file = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['apk'],
     );

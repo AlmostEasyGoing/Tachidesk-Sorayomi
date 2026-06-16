@@ -36,15 +36,15 @@ class MangaDetailsScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Providers as Class for this screen
-    final mangaProvider = mangaWithIdProvider(mangaId: mangaId);
-    final chapterListProvider = mangaChapterListProvider(mangaId: mangaId);
+    final mangaProvider = mangaWithIdProvider(mangaId);
+    final chapterListProvider = mangaChapterListProvider(mangaId);
     final chapterListFilteredProvider =
-        mangaChapterListWithFilterProvider(mangaId: mangaId);
+        mangaChapterListWithFilterProvider(mangaId);
 
     final manga = ref.watch(mangaProvider);
     final filteredChapterList = ref.watch(chapterListFilteredProvider);
     final firstUnreadChapter = ref.watch(
-      firstUnreadInFilteredChapterListProvider(mangaId: mangaId),
+      firstUnreadInFilteredChapterListProvider(mangaId),
     );
 
     final selectedChapters = useState<Map<int, ChapterDto>>({});
@@ -121,7 +121,7 @@ class MangaDetailsScreen extends HookConsumerWidget {
                     IconButton(
                       onPressed: () {
                         final chapterList = [
-                          ...?filteredChapterList.valueOrNull
+                          ...?filteredChapterList.asData?.value
                         ];
                         selectedChapters.value =
                             ({for (ChapterDto i in chapterList) i.id: i});
@@ -131,7 +131,7 @@ class MangaDetailsScreen extends HookConsumerWidget {
                     IconButton(
                       onPressed: () {
                         final chapterList = [
-                          ...?filteredChapterList.valueOrNull
+                          ...?filteredChapterList.asData?.value
                         ];
                         selectedChapters.value = ({
                           for (ChapterDto i in chapterList)
@@ -339,7 +339,7 @@ class MultiSelectPopupButton extends StatelessWidget {
         PopupMenuItem(
           onTap: () {
             List<ChapterDto> chapterList = [
-              ...?filteredChapterList.valueOrNull
+              ...?filteredChapterList.asData?.value
             ];
             final lastId = selectedChapters.value.keys.last;
             final lastIndex =
@@ -355,7 +355,7 @@ class MultiSelectPopupButton extends StatelessWidget {
         ),
         PopupMenuItem(
           onTap: () {
-            final chapterList = [...?filteredChapterList.valueOrNull];
+            final chapterList = [...?filteredChapterList.asData?.value];
 
             selectedChapters.value = ({
               for (ChapterDto i in chapterList)
@@ -366,7 +366,7 @@ class MultiSelectPopupButton extends StatelessWidget {
         ),
         PopupMenuItem(
           onTap: () {
-            final chapterList = [...?filteredChapterList.valueOrNull];
+            final chapterList = [...?filteredChapterList.asData?.value];
             final selectedChapterIds =
                 selectedChapters.value.keys.toList(growable: false);
             final firstSelectedIndex = chapterList.indexWhere(

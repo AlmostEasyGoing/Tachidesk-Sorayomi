@@ -26,7 +26,7 @@ class CategoryMangaList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider =
-        categoryMangaListWithQueryAndFilterProvider(categoryId: categoryId);
+        categoryMangaListWithQueryAndFilterProvider(categoryId);
     final mangaList = ref.watch(provider);
     final displayMode = ref.watch(libraryDisplayModeProvider);
     final gridWidth = ref.watch(gridMinWidthProvider);

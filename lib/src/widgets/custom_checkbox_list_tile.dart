@@ -7,11 +7,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../utils/extensions/custom_extensions.dart';
 
-class CustomCheckboxListTile<NotifierT extends AutoDisposeNotifier<bool?>>
-    extends ConsumerWidget {
+class CustomCheckboxListTile extends ConsumerWidget {
   const CustomCheckboxListTile({
     super.key,
     required this.title,
@@ -20,7 +20,7 @@ class CustomCheckboxListTile<NotifierT extends AutoDisposeNotifier<bool?>>
     this.tristate = true,
   });
   final String title;
-  final AutoDisposeNotifierProvider<NotifierT, bool?> provider;
+  final ProviderListenable<bool?> provider;
   final ValueChanged<bool?> onChanged;
   final bool tristate;
   @override
@@ -28,7 +28,7 @@ class CustomCheckboxListTile<NotifierT extends AutoDisposeNotifier<bool?>>
     final val = ref.watch(provider);
     return CheckboxListTile(
       controlAffinity: ListTileControlAffinity.leading,
-      activeColor: context.theme.indicatorColor,
+      activeColor: context.theme.tabBarTheme.indicatorColor,
       value: tristate ? val : val.ifNull(true),
       title: Text(title),
       tristate: tristate,

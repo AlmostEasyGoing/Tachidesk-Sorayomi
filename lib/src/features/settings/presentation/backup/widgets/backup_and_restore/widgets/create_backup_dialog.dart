@@ -47,8 +47,9 @@ class CreateBackupDialog extends HookConsumerWidget {
             final backupUrl = await AsyncValue.guard(() => ref
                 .read(backupSettingsRepositoryProvider)
                 .createBackup(includeCategory.value, includeChapters.value));
+            final backupUrlValue = backupUrl.asData?.value;
             if (!context.mounted) return;
-            if (backupUrl.hasError || backupUrl.valueOrNull.isBlank) {
+            if (backupUrl.hasError || backupUrlValue?.isBlank == true) {
               {
                 toast?.showError(
                   backupUrl.error?.toString() ?? context.l10n.errorBackupCreate,

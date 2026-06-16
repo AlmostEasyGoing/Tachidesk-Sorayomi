@@ -28,7 +28,7 @@ class MigrationSourceSelectionScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final sourcesAsync =
-        ref.watch(migrationSourcesProvider(mangaId: sourceManga.id));
+        ref.watch(migrationSourcesProvider(sourceManga.id));
     final selectedSource = ref.watch(selectedMigrationSourceProvider);
 
     return Scaffold(
@@ -140,7 +140,7 @@ class MigrationSourceSelectionScreen extends HookConsumerWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref
-                    .refresh(migrationSourcesProvider(mangaId: sourceManga.id)),
+                    .refresh(migrationSourcesProvider(sourceManga.id)),
                 child: Text(l10n.retry),
               ),
             ],

@@ -4,22 +4,24 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../../utils/extensions/custom_extensions.dart';
 import '../../../data/downloads/downloads_repository.dart';
 import '../../../domain/downloads/downloads_model.dart';
-import '../../../domain/downloads/graphql/__generated__/fragment.graphql.dart';
 import '../../../domain/downloads_queue/downloads_queue_model.dart';
 
 part 'downloads_controller.g.dart';
 
-@riverpod
 Stream<DownloadUpdatesDto?> downloadUpdates(Ref ref) =>
     ref.watch(downloadsRepositoryProvider).downloadStatusSubscription();
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final downloadUpdatesProvider = StreamProvider.autoDispose<DownloadUpdatesDto?>(downloadUpdates);
+
 Future<DownloadStatusDto?> downloadStatus(Ref ref) =>
     ref.watch(downloadsRepositoryProvider).getDownloadStatus();
 
-@riverpod
-class DownloadsMap extends _$DownloadsMap {
-  void updateDownloadStatus(Fragment$DownloadUpdatesDto? downloadStatusDto) {
+// GRAPHQL_CODEGEN_BUG
+final downloadStatusProvider = FutureProvider.autoDispose<DownloadStatusDto?>(downloadStatus);
+
+class DownloadsMap extends Notifier<Map<int, DownloadDto>> {
+  void updateDownloadStatus(DownloadUpdatesDto? downloadStatusDto) {
     final currState = {...?stateOrNull};
     for (final element in [...?downloadStatusDto?.initial]) {
       currState[element.chapter.id] = element;
@@ -50,8 +52,8 @@ class DownloadsMap extends _$DownloadsMap {
   @override
   Map<int, DownloadDto> build() {
     ref.listen(downloadUpdatesProvider,
-        (_, next) => updateDownloadStatus(next.valueOrNull));
-    final downloadStatusDto = ref.watch(downloadStatusProvider).valueOrNull;
+        (_, next) => updateDownloadStatus(next.asData?.value));
+    final downloadStatusDto = ref.watch(downloadStatusProvider).asData?.value;
     return getStateFromUpdates(downloadStatusDto);
   }
 
@@ -72,9 +74,14 @@ class DownloadsMap extends _$DownloadsMap {
   }
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final downloadsMapProvider = NotifierProvider.autoDispose<DownloadsMap, Map<int, DownloadDto>>(DownloadsMap.new);
+
 DownloadDto? downloadsFromId(Ref ref, int chapterId) =>
     ref.watch(downloadsMapProvider.select((map) => map[chapterId]));
+
+// GRAPHQL_CODEGEN_BUG
+final downloadsFromIdProvider = Provider.autoDispose.family<DownloadDto?, int>(downloadsFromId);
 
 @riverpod
 List<int> downloadsChapterIds(Ref ref) {
@@ -83,18 +90,21 @@ List<int> downloadsChapterIds(Ref ref) {
   return downloads.map((d) => d.chapter.id).toList();
 }
 
-@riverpod
 AsyncValue<DownloaderState?> downloaderState(Ref ref) {
   return ref.watch(downloadUpdatesProvider
       .select((value) => value.copyWithData((data) => data?.state)));
 }
 
+// GRAPHQL_CODEGEN_BUG
+final downloaderStateProvider = Provider.autoDispose<AsyncValue<DownloaderState?>>(downloaderState);
+
 @riverpod
 bool showDownloadsFAB(Ref ref) {
   final downloads = ref.watch(downloadUpdatesProvider);
-  return downloads.valueOrNull?.state == DownloaderState.STARTED ||
-      (downloads.valueOrNull?.updates).isNotBlank &&
-          downloads.valueOrNull!.updates.any(
+  final value = downloads.asData?.value;
+  return value?.state == DownloaderState.STARTED ||
+      (value?.updates)?.isNotBlank == true &&
+          value!.updates.any(
             (element) =>
                 element.download.state != DownloadState.ERROR ||
                 element.download.tries != 3,

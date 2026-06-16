@@ -15,9 +15,11 @@ import '../../../domain/about/about_dto.dart';
 
 part 'about_controller.g.dart';
 
-@riverpod
 Future<AboutDto?> about(Ref ref) =>
     ref.watch(aboutRepositoryProvider).getAbout();
 
+// GRAPHQL_CODEGEN_BUG
+final aboutProvider = FutureProvider.autoDispose<AboutDto?>((ref) => about(ref));
+
 @riverpod
-PackageInfo packageInfo(ref) => throw UnimplementedError();
+PackageInfo packageInfo(Ref ref) => throw UnimplementedError();

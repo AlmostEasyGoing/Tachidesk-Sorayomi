@@ -36,7 +36,7 @@ class BigScreenMangaDetails extends ConsumerWidget {
   final AsyncValue<List<ChapterDto>?> chapterList;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filteredChapterList = chapterList.valueOrNull;
+    final filteredChapterList = chapterList.asData?.value;
     return RefreshIndicator(
       onRefresh: () => onRefresh(true),
       child: Row(

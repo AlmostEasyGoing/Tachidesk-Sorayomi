@@ -96,10 +96,14 @@ UpdatesRepository updatesRepository(Ref ref) => UpdatesRepository(
     ref.watch(graphQlClientProvider),
     ref.watch(graphQlSubscriptionClientProvider));
 
-@riverpod
 Future<UpdateStatusDto?> updateSummary(Ref ref) =>
     ref.watch(updatesRepositoryProvider).summaryUpdates();
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final updateSummaryProvider = FutureProvider.autoDispose<UpdateStatusDto?>(updateSummary);
+
 Stream<UpdateStatusDto?> updatesSocket(Ref ref) =>
     ref.watch(updatesRepositoryProvider).updateStatusSubscription();
+
+// GRAPHQL_CODEGEN_BUG
+final updatesSocketProvider = StreamProvider.autoDispose<UpdateStatusDto?>(updatesSocket);

@@ -83,5 +83,5 @@ class SourceRepository {
 }
 
 @riverpod
-SourceRepository sourceRepository(ref) =>
+SourceRepository sourceRepository(Ref ref) =>
     SourceRepository(ref.watch(graphQlClientProvider));

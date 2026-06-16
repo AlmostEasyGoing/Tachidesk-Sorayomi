@@ -16,7 +16,7 @@ class SkipUpdatingEntriesPopup extends ConsumerWidget {
   Widget build(context, ref) {
     final settingsDto = ref.watch(settingsProvider);
     final repository = ref.watch(librarySettingsRepositoryProvider);
-    final LibrarySettingsDto? librarySettingsDto = settingsDto.valueOrNull;
+    final LibrarySettingsDto? librarySettingsDto = settingsDto.asData?.value;
     return AlertDialog(
       title: Text(context.l10n.skipUpdatingEntries),
       contentPadding: KEdgeInsets.v8.size,
@@ -26,7 +26,7 @@ class SkipUpdatingEntriesPopup extends ConsumerWidget {
           children: [
             CheckboxListTile(
               controlAffinity: ListTileControlAffinity.leading,
-              activeColor: context.theme.indicatorColor,
+              activeColor: context.theme.tabBarTheme.indicatorColor,
               title: Text(context.l10n.withCompletedStatus),
               value: librarySettingsDto?.excludeCompleted.ifNull(),
               onChanged: (value) async {
@@ -41,7 +41,7 @@ class SkipUpdatingEntriesPopup extends ConsumerWidget {
             ),
             CheckboxListTile(
               controlAffinity: ListTileControlAffinity.leading,
-              activeColor: context.theme.indicatorColor,
+              activeColor: context.theme.tabBarTheme.indicatorColor,
               title: Text(context.l10n.thatHaventBeenStarted),
               value: librarySettingsDto?.excludeNotStarted.ifNull(),
               onChanged: (value) async {
@@ -56,7 +56,7 @@ class SkipUpdatingEntriesPopup extends ConsumerWidget {
             ),
             CheckboxListTile(
               controlAffinity: ListTileControlAffinity.leading,
-              activeColor: context.theme.indicatorColor,
+              activeColor: context.theme.tabBarTheme.indicatorColor,
               title: Text(context.l10n.withUnreadChapter),
               value: librarySettingsDto?.excludeUnreadChapters.ifNull(),
               onChanged: (value) async {

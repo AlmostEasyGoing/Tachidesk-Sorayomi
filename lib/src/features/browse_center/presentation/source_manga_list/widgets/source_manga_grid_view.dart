@@ -23,37 +23,43 @@ class SourceMangaGridView extends ConsumerWidget {
   const SourceMangaGridView({
     super.key,
     required this.toggleFavorite,
-    required this.controller,
+    required this.state,
+    required this.fetchNextPage,
     required this.sourceId,
     required this.sourceType,
     this.source,
   });
+
   final Future<AsyncValue?> Function(MangaDto) toggleFavorite;
-  final PagingController<int, MangaDto> controller;
+  final PagingState<int, MangaDto> state;
+  final NextPageCallback fetchNextPage;
   final SourceDto? source;
   final String sourceId;
   final SourceType sourceType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final items = state.items ?? [];
+
     return PagedGridView(
-      pagingController: controller,
+      state: state,
+      fetchNextPage: fetchNextPage,
       builderDelegate: PagedChildBuilderDelegate<MangaDto>(
         firstPageProgressIndicatorBuilder: (context) =>
             const CenterSorayomiShimmerIndicator(),
         newPageProgressIndicatorBuilder: (context) =>
             const CenterSorayomiShimmerIndicator(),
         firstPageErrorIndicatorBuilder: (context) => Emoticons(
-          title: controller.error.toString(),
+          title: state.error.toString(),
           button: TextButton(
-            onPressed: () => controller.refresh(),
+            onPressed: fetchNextPage,
             child: Text(context.l10n.retry),
           ),
         ),
         noItemsFoundIndicatorBuilder: (context) => Emoticons(
           title: context.l10n.noMangaFound,
           button: TextButton(
-            onPressed: () => controller.refresh(),
+            onPressed: fetchNextPage,
             child: Text(context.l10n.refresh),
           ),
         ),
@@ -64,9 +70,8 @@ class SourceMangaGridView extends ConsumerWidget {
             final value = await toggleFavorite(item);
             if (value == null) return;
             if (value is! AsyncError) {
-              final items = [...?controller.itemList];
+              // ✅ mapItems instead of mutating controller.itemList
               items[index] = item.copyWith(inLibrary: !item.inLibrary.ifNull());
-              controller.itemList = items;
             }
           },
           onPressed: () => MangaRoute(mangaId: item.id).push(context),

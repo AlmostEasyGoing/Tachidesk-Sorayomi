@@ -28,11 +28,13 @@ mixin SharedPreferenceClientMixin<T extends Object> {
   late final String _key;
   late final SharedPreferences _client;
   late final T? _initial;
+
   set state(T? newState);
   T? get state;
   late final dynamic Function(T)? _toJson;
   late final T? Function(dynamic)? _fromJson;
-  AutoDisposeNotifierProviderRef<T?> get ref;
+
+  Ref get ref;
 
   T? initialize(
     DBKeys key, {
@@ -40,56 +42,35 @@ mixin SharedPreferenceClientMixin<T extends Object> {
     dynamic Function(T)? toJson,
     T? Function(dynamic)? fromJson,
   }) {
-    _client = ref.watch(sharedPreferencesProvider);
+    _client = ref.read(sharedPreferencesProvider);
     _key = key.name;
     _initial = initial ?? key.initial;
     _toJson = toJson;
     _fromJson = fromJson;
-    _persistenceRefreshLogic(ref);
-    return _get ?? _initial;
+
+    return _read();
+  }
+
+  T? _read() {
+    final value = _client.get(_key);
+
+    if (value == null) return _initial;
+
+    if (_fromJson != null) {
+      return _fromJson!(jsonDecode(value.toString()));
+    }
+
+    if (value is List) {
+      return value.map((e) => e.toString()).toList() as T?;
+    }
+
+    return value is T ? value : _initial;
   }
 
   void update(T? value) => state = value;
 
   void updateWithPreviousState(T? Function(T?) operation) =>
       state = operation(state);
-
-  T? get _get {
-    final value = _client.get(_key);
-    if (_fromJson != null) {
-      return _fromJson!(jsonDecode(value.toString()));
-    }
-    if (value != null && value is List) {
-      // if value is List<Object> then the only possible type is List<String>
-      // as SharedPreferences only saves List<String> type.
-      // casting it to List<String> and then to T? to
-      // avoid comparing List<Object> with T?.
-      return value.map((e) => e.toString()).toList() as T?;
-    }
-    return value is T? ? value : _initial;
-  }
-
-  void _persistenceRefreshLogic(AutoDisposeNotifierProviderRef<T?> ref) =>
-      ref.listenSelf((_, next) => _set(next));
-
-  Future<bool> _set(T? value) async {
-    if (value == null) return _client.remove(_key);
-    if (_toJson != null) {
-      _client.setString(_key, jsonEncode(_toJson!(value)));
-    }
-    if (value is bool) {
-      return await _client.setBool(_key, value);
-    } else if (value is double) {
-      return await _client.setDouble(_key, value);
-    } else if (value is int) {
-      return await _client.setInt(_key, value);
-    } else if (value is String) {
-      return await _client.setString(_key, value);
-    } else if (value is List<String>) {
-      return await _client.setStringList(_key, value);
-    }
-    return false;
-  }
 }
 
 /// [SharedPreferenceEnumClientMixin] is a mixin to add [get] and [update] functions to
@@ -102,36 +83,42 @@ mixin SharedPreferenceEnumClientMixin<T extends Enum> {
   late SharedPreferences _client;
   T? _initial;
   late List<T> _enumList;
-  set state(T? newState);
-  AutoDisposeNotifierProviderRef<T?> get ref;
 
-  T? initialize(DBKeys key, {required List<T> enumList}) {
-    _client = ref.watch(sharedPreferencesProvider);
+  set state(T? newState);
+  T? get state;
+
+  Ref get ref;
+
+  T? initialize(
+    DBKeys key, {
+    required List<T> enumList,
+  }) {
+    _client = ref.read(sharedPreferencesProvider);
     _key = key.name;
     _initial = key.initial;
     _enumList = enumList;
-    _persistenceRefreshLogic(ref);
+
     return _get;
   }
 
   void update(T? value) => state = value;
 
-  T? _getEnumFromIndex(int? value) =>
-      value.liesBetween(upper: _enumList.length - 1)
-          ? _enumList[value!]
-          : _initial;
+  T? _getEnumFromIndex(int? value) {
+    if (value == null) return _initial;
+
+    return value.liesBetween(upper: _enumList.length - 1)
+        ? _enumList[value]
+        : _initial;
+  }
 
   T? get _get => _getEnumFromIndex(_client.getInt(_key));
 
-  Future<bool> _set(int? value) {
+  Future<bool> setValue(T? value) {
     if (value == null) return _client.remove(_key);
-    return _client.setInt(_key, value);
-  }
 
-  void _persistenceRefreshLogic(AutoDisposeNotifierProviderRef<T?> ref) =>
-      ref.listenSelf(
-        (_, next) => _set(
-          next == null ? null : _enumList.indexOf(next),
-        ),
-      );
+    final index = _enumList.indexOf(value);
+    if (index == -1) return Future.value(false);
+
+    return _client.setInt(_key, index);
+  }
 }

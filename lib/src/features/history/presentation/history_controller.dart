@@ -17,8 +17,7 @@ import '../domain/history_item.dart';
 
 part 'history_controller.g.dart';
 
-@riverpod
-class ReadingHistory extends _$ReadingHistory {
+class ReadingHistory extends AsyncNotifier<List<HistoryItemDto>?> {
   @override
   Future<List<HistoryItemDto>?> build() async {
     final result =
@@ -43,7 +42,7 @@ class ReadingHistory extends _$ReadingHistory {
   }
 
   Future<void> loadMore() async {
-    final currentItems = state.valueOrNull ?? [];
+    final currentItems = state.asData?.value ?? [];
     final pageNo = (currentItems.length / 50).floor() + 1;
 
     final result = await AsyncValue.guard(
@@ -69,7 +68,7 @@ class ReadingHistory extends _$ReadingHistory {
   Future<void> removeFromHistory(int chapterId) async {
     state = await AsyncValue.guard(() async {
       // First get the chapter to extract mangaId for cache invalidation
-      final currentItems = state.valueOrNull ?? [];
+      final currentItems = state.asData?.value ?? [];
       HistoryItemDto? chapterToRemove;
 
       try {
@@ -88,8 +87,8 @@ class ReadingHistory extends _$ReadingHistory {
       if (chapterToRemove != null) {
         final mangaId = chapterToRemove.mangaId;
         // Invalidate the specific manga's chapter list so it shows as unread immediately
-        ref.invalidate(mangaChapterListProvider(mangaId: mangaId));
-        ref.invalidate(mangaWithIdProvider(mangaId: mangaId));
+        ref.invalidate(mangaChapterListProvider(mangaId));
+        ref.invalidate(mangaWithIdProvider(mangaId));
       }
 
       // Also invalidate the history provider itself to force a fresh query
@@ -103,10 +102,15 @@ class ReadingHistory extends _$ReadingHistory {
   }
 }
 
-@riverpod
-class MangaReadingHistory extends _$MangaReadingHistory {
+// GRAPHQL_CODEGEN_BUG
+final readingHistoryProvider = AsyncNotifierProvider<ReadingHistory, List<HistoryItemDto>?>(ReadingHistory.new);
+
+class MangaReadingHistory extends AsyncNotifier<List<HistoryItemDto>?> {
+  MangaReadingHistory(this.mangaId);
+  final int mangaId;
+
   @override
-  Future<List<HistoryItemDto>?> build({required int mangaId}) async {
+  Future<List<HistoryItemDto>?> build() async {
     return ref
         .watch(historyRepositoryProvider)
         .getMangaReadingHistory(mangaId: mangaId);
@@ -123,9 +127,12 @@ class MangaReadingHistory extends _$MangaReadingHistory {
   }
 }
 
+// GRAPHQL_CODEGEN_BUG
+final mangaReadingHistoryProvider = AsyncNotifierProvider.family<MangaReadingHistory, List<HistoryItemDto>?, int>(MangaReadingHistory.new);
+
 @riverpod
 List<HistoryGroup> historyGroupedByDate(Ref ref) {
-  final historyItems = ref.watch(readingHistoryProvider).valueOrNull ?? [];
+  final historyItems = ref.watch(readingHistoryProvider).asData?.value ?? [];
 
   if (historyItems.isEmpty) return [];
 
@@ -177,7 +184,7 @@ List<HistoryGroup> filteredHistoryGroups(Ref ref) {
 }
 
 @riverpod
-class HistorySearchQuery extends _$HistorySearchQuery {
+class HistorySearchQuery extends Notifier<String> {
   @override
   String build() => '';
 
@@ -192,7 +199,7 @@ class HistorySearchQuery extends _$HistorySearchQuery {
 
 // History settings providers
 @riverpod
-class HistoryRetentionDays extends _$HistoryRetentionDays
+class HistoryRetentionDays extends Notifier<int?>
     with SharedPreferenceClientMixin<int> {
   @override
   int? build() => initialize(DBKeys.historyRetentionDays);
@@ -203,7 +210,7 @@ class HistoryRetentionDays extends _$HistoryRetentionDays
 }
 
 @riverpod
-class HistoryEnabled extends _$HistoryEnabled
+class HistoryEnabled extends Notifier<bool?>
     with SharedPreferenceClientMixin<bool> {
   @override
   bool? build() => initialize(DBKeys.historyEnabled);

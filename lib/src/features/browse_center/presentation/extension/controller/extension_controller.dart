@@ -17,19 +17,19 @@ import '../../../domain/extension/extension_model.dart';
 
 part 'extension_controller.g.dart';
 
-@riverpod
 Future<List<Extension>?> extension(Ref ref) {
   final result =
       ref.watch(extensionRepositoryProvider).getExtensionListStream();
-  ref.keepAlive();
   return result;
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final extensionProvider = FutureProvider<List<Extension>?>((ref) => extension(ref));
+
 AsyncValue<Map<String, List<Extension>>> extensionMap(Ref ref) {
   final extensionMap = <String, List<Extension>>{};
   final extensionListData = ref.watch(extensionProvider);
-  final extensionList = [...?extensionListData.valueOrNull];
+  final extensionList = [...?extensionListData.asData?.value];
   final showNsfw = ref.watch(showNSFWProvider).ifNull(true);
   for (final e in extensionList) {
     if (!showNsfw && (e.isNsfw.ifNull())) continue;
@@ -58,26 +58,28 @@ AsyncValue<Map<String, List<Extension>>> extensionMap(Ref ref) {
   return extensionListData.copyWithData((p0) => extensionMap);
 }
 
+// GRAPHQL_CODEGEN_BUG
+final extensionMapProvider = Provider.autoDispose<AsyncValue<Map<String, List<Extension>>>>(extensionMap);
+
 @riverpod
 List<String> extensionFilterLangList(Ref ref) {
-  final extensionMap = {...?ref.watch(extensionMapProvider).valueOrNull};
+  final extensionMap = {...?ref.watch(extensionMapProvider).asData?.value};
   extensionMap.remove("installed");
   extensionMap.remove("update");
   return [...extensionMap.keys]..sort();
 }
 
 @riverpod
-class ExtensionLanguageFilter extends _$ExtensionLanguageFilter
+class ExtensionLanguageFilter extends Notifier<List<String>?>
     with SharedPreferenceClientMixin<List<String>> {
   @override
   List<String>? build() => initialize(DBKeys.extensionLanguageFilter);
 }
 
-@riverpod
 AsyncValue<Map<String, List<Extension>>> extensionMapFiltered(Ref ref) {
   final extensionMapFiltered = <String, List<Extension>>{};
   final extensionMapData = ref.watch(extensionMapProvider);
-  final extensionMap = {...?extensionMapData.valueOrNull};
+  final extensionMap = {...?extensionMapData.asData?.value};
   final enabledLangList = [...?ref.watch(extensionLanguageFilterProvider)];
   for (final e in enabledLangList) {
     if (extensionMap.containsKey(e)) extensionMapFiltered[e] = extensionMap[e]!;
@@ -85,12 +87,19 @@ AsyncValue<Map<String, List<Extension>>> extensionMapFiltered(Ref ref) {
   return extensionMapData.copyWithData((p0) => extensionMapFiltered);
 }
 
+// GRAPHQL_CODEGEN_BUG
+final extensionMapFilteredProvider = Provider.autoDispose<AsyncValue<Map<String, List<Extension>>>>(extensionMapFiltered);
+
 @riverpod
-AsyncValue<Map<String, List<Extension>>> extensionMapFilteredAndQueried(
-  Ref ref,
-) {
+class ExtensionQuery extends Notifier<String?>
+  with StateProviderMixin<String?> {
+  @override
+  String? build() => null;
+}
+
+AsyncValue<Map<String, List<Extension>>> extensionMapFilteredAndQueried(Ref ref) {
   final extensionMapData = ref.watch(extensionMapFilteredProvider);
-  final extensionMap = {...?extensionMapData.valueOrNull};
+  final extensionMap = {...?extensionMapData.asData?.value};
   final query = ref.watch(extensionQueryProvider);
   if (query.isBlank) return extensionMapData;
   return extensionMapData.copyWithData(
@@ -103,8 +112,5 @@ AsyncValue<Map<String, List<Extension>>> extensionMapFilteredAndQueried(
   );
 }
 
-@riverpod
-class ExtensionQuery extends _$ExtensionQuery with StateProviderMixin<String?> {
-  @override
-  String? build() => null;
-}
+// GRAPHQL_CODEGEN_BUG
+final extensionMapFilteredAndQueriedProvider = Provider.autoDispose<AsyncValue<Map<String, List<Extension>>>>(extensionMapFilteredAndQueried);

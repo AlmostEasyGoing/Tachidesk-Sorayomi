@@ -63,7 +63,7 @@ class RadioList<T> extends StatelessWidget {
 
   Widget getRadioListTile(BuildContext context, T option) {
     return RadioListTile<T>(
-      activeColor: context.theme.indicatorColor,
+      activeColor: context.theme.tabBarTheme.indicatorColor,
       title: Text(
         getTitle?.call(option) ?? option.toString(),
       ),

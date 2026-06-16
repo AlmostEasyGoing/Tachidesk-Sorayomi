@@ -1,13 +1,10 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../utils/extensions/custom_extensions.dart';
 import '../data/settings_repository.dart';
 import '../domain/settings/settings.dart';
 
-part 'server_controller.g.dart';
-
-@riverpod
-class Settings extends _$Settings {
+class Settings extends AsyncNotifier<SettingsDto?> {
   @override
   Future<SettingsDto?> build() =>
       ref.watch(settingsRepositoryProvider).getServerSettings();
@@ -15,3 +12,6 @@ class Settings extends _$Settings {
   void updateState(SettingsDto value) =>
       state = state.copyWithData((_) => value);
 }
+
+// GRAPHQL_CODEGEN_BUG
+final settingsProvider = AsyncNotifierProvider.autoDispose<Settings, SettingsDto?>(Settings.new);

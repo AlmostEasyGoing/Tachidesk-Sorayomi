@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../constants/quick_open_help_text.dart';
@@ -44,7 +43,7 @@ List<QuickSearchResult>? processesQuickSearch(
     String sourceQuery = query.startsWith('@') ? query.substring(1) : query;
     final queryList = sourceQuery.split('/');
     final sourceList =
-        ref.watch(sourceQueryProvider(query: queryList.firstOrNull));
+        ref.watch(sourceQueryProvider(queryList.firstOrNull));
 
     if (queryList.length > 1) {
       return sourceList
@@ -63,8 +62,8 @@ List<QuickSearchResult>? processesQuickSearch(
   List<QuickSearchResult>? chapterSearch(MangaDto manga,
       {CategoryDto? category, String? query}) {
     final chapterList = ref
-        .watch(mangaChapterListProvider(mangaId: manga.id))
-        .valueOrNull
+        .watch(mangaChapterListProvider(manga.id))
+        .asData?.value
         ?.where(
           (chapter) => chapter.query(query),
         )
@@ -86,7 +85,7 @@ List<QuickSearchResult>? processesQuickSearch(
     final categoryMangaQueryList = categoryQuery.split('/');
 
     final categoryList = ref
-        .watch(categoryListQueryProvider(query: categoryMangaQueryList.first));
+        .watch(categoryListQueryProvider(categoryMangaQueryList.first));
 
     if (categoryMangaQueryList.length > 1) {
       final firstCategory = categoryList.firstOrNull;
@@ -95,7 +94,7 @@ List<QuickSearchResult>? processesQuickSearch(
       final mangaChapterQueryList = categoryMangaQueryList[1].split(':');
       final mangaList = ref
           .watch(categoryMangaListProvider(firstCategory!.id))
-          .valueOrNull
+          .asData?.value
           ?.where((e) => e.query(mangaChapterQueryList.firstOrNull));
 
       if (mangaChapterQueryList.length > 1) {
@@ -137,7 +136,7 @@ List<QuickSearchResult>? processesQuickSearch(
             .firstOrNull ??
         '');
     if (id != null) {
-      final manga = ref.watch(MangaWithIdProvider(mangaId: id)).valueOrNull;
+      final manga = ref.watch(mangaWithIdProvider(id)).asData?.value;
       if (manga != null) return chapterSearch(manga, query: query);
     }
   }

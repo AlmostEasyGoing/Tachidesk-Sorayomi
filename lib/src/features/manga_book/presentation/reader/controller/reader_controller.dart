@@ -11,16 +11,22 @@ import '../../../data/manga_book/manga_book_repository.dart';
 import '../../../domain/chapter/chapter_model.dart';
 import '../../../domain/chapter_page/chapter_page_model.dart';
 
-part 'reader_controller.g.dart';
-
-@riverpod
 FutureOr<ChapterDto?> chapter(
   Ref ref, {
   required int chapterId,
 }) =>
     ref.watch(mangaBookRepositoryProvider).getChapter(chapterId: chapterId);
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final chapterProvider = FutureProvider.autoDispose.family<ChapterDto?, int>(
+  (ref, chapterId) => chapter(ref, chapterId: chapterId)
+);
+
 Future<ChapterPagesDto?> chapterPages(Ref ref, {required int chapterId}) => ref
     .watch(mangaBookRepositoryProvider)
     .getChapterPages(chapterId: chapterId);
+
+// GRAPHQL_CODEGEN_BUG
+final chapterPagesProvider = FutureProvider.autoDispose.family<ChapterPagesDto?, int>(
+  (ref, chapterId) => chapterPages(ref, chapterId: chapterId)
+);

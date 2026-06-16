@@ -120,10 +120,11 @@ class ReaderWrapper extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nextPrevChapterPair = ref.watch(
-      getNextAndPreviousChaptersProvider(
+      getNextAndPreviousChaptersProvider((
         mangaId: manga.id,
         chapterId: chapter.id,
-      ),
+        shouldAscSort: null
+      )),
     );
     final invertTap = ref.watch(invertTapProvider).ifNull();
 
@@ -184,7 +185,7 @@ class ReaderWrapper extends HookConsumerWidget {
                     value: enumValue.name,
                   ),
             );
-            ref.invalidate(mangaWithIdProvider(mangaId: manga.id));
+            ref.invalidate(mangaWithIdProvider(manga.id));
           },
         ),
       ),
@@ -208,7 +209,7 @@ class ReaderWrapper extends HookConsumerWidget {
                     value: enumValue.name,
                   ),
             );
-            ref.invalidate(mangaWithIdProvider(mangaId: manga.id));
+            ref.invalidate(mangaWithIdProvider(manga.id));
           },
         ),
       ),
@@ -408,7 +409,7 @@ class ReaderWrapper extends HookConsumerWidget {
                           value: value,
                         ),
                   );
-                  ref.invalidate(mangaWithIdProvider(mangaId: manga.id));
+                  ref.invalidate(mangaWithIdProvider(manga.id));
                 },
               ),
               AsyncReaderMagnifierSizeSlider(
@@ -421,7 +422,7 @@ class ReaderWrapper extends HookConsumerWidget {
                           value: value,
                         ),
                   );
-                  ref.invalidate(mangaWithIdProvider(mangaId: manga.id));
+                  ref.invalidate(mangaWithIdProvider(manga.id));
                 },
               ),
             ],
@@ -498,7 +499,7 @@ class ReaderWrapper extends HookConsumerWidget {
                               change: ChapterChange(
                                   isBookmarked: !chapter.isBookmarked),
                               refresh: () => ref.refresh(
-                                  chapterProvider(chapterId: chapter.id)
+                                  chapterProvider(chapter.id)
                                       .future),
                             ),
                             IconButton(

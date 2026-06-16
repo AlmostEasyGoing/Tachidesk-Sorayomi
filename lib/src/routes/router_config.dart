@@ -104,7 +104,7 @@ abstract class Routes {
 }
 
 @riverpod
-GoRouter routerConfig(ref) {
+GoRouter routerConfig(Ref ref) {
   return GoRouter(
     routes: $appRoutes,
     debugLogDiagnostics: true,

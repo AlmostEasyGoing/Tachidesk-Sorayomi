@@ -14,7 +14,6 @@ import '../../browse_center/domain/source/source_model.dart';
 import '../../browse_center/presentation/source/controller/source_controller.dart';
 import '../../library/presentation/category/controller/edit_category_controller.dart';
 import '../../library/presentation/library/controller/library_controller.dart';
-import '../../manga_book/domain/manga/graphql/__generated__/fragment.graphql.dart';
 import '../../manga_book/domain/manga/manga_model.dart';
 import '../../manga_book/presentation/manga_details/controller/manga_details_controller.dart';
 import '../data/migration_repository.dart';
@@ -22,10 +21,12 @@ import '../domain/migration_models.dart';
 
 part 'migration_controller.g.dart';
 
-@riverpod
-class MigrationSources extends _$MigrationSources {
+class MigrationSources extends AsyncNotifier<List<MigrationSource>?> {
+  MigrationSources(this.mangaId);
+  final int mangaId;
+
   @override
-  Future<List<MigrationSource>?> build({required int mangaId}) async {
+  Future<List<MigrationSource>?> build() async {
     return ref.watch(migrationRepositoryProvider).getMigrationSources(mangaId);
   }
 
@@ -34,13 +35,15 @@ class MigrationSources extends _$MigrationSources {
   }
 }
 
-@riverpod
-class MigrationSearch extends _$MigrationSearch {
+final migrationSourcesProvider = AsyncNotifierProvider.autoDispose.family<MigrationSources, List<MigrationSource>?, int>(MigrationSources.new);
+
+class MigrationSearch extends AsyncNotifier<List<MangaDto>?> {
+  MigrationSearch(this.sourceId, this.query);
+  final String sourceId;
+  final String query;
+
   @override
-  Future<List<Fragment$MangaDto>?> build({
-    required String sourceId,
-    required String query,
-  }) async {
+  Future<List<MangaDto>?> build() async {
     if (query.isEmpty) return [];
 
     return ref
@@ -63,13 +66,18 @@ class MigrationSearch extends _$MigrationSearch {
   }
 }
 
+// GRAPHQL_CODEGEN_BUG
+final migrationSearchProvider = AsyncNotifierProvider.autoDispose.family
+  <MigrationSearch, List<MangaDto>?, ({ String sourceId, String query })>(
+    (arg) => MigrationSearch(arg.sourceId, arg.query)
+);
+
 // Migration Quick Search Results similar to regular global search
 typedef MigrationQuickSearchResults = ({
   SourceDto source,
   AsyncValue<List<MangaDto>> mangaList
 });
 
-@riverpod
 Future<List<MangaDto>> migrationSourceQuickSearchMangaList(
   Ref ref,
   String sourceId, {
@@ -86,13 +94,18 @@ Future<List<MangaDto>> migrationSourceQuickSearchMangaList(
   return [...?(mangaPage?.mangas)];
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final migrationSourceQuickSearchMangaListProvider = FutureProvider.autoDispose.family
+  <List<MangaDto>, ({ String sourceId, String? query })>(
+  (ref, arg) => migrationSourceQuickSearchMangaList(ref, arg.sourceId, query: arg.query)
+);
+
 AsyncValue<List<MigrationQuickSearchResults>> migrationGlobalSearchResults(
     Ref ref,
     {String? query}) {
   final sourceMapData = ref.watch(sourceMapFilteredProvider);
 
-  final sourceMap = <String, List<SourceDto>>{...?sourceMapData.valueOrNull}
+  final sourceMap = <String, List<SourceDto>>{...?sourceMapData.asData?.value}
     ..remove("lastUsed");
   final sourceList = sourceMap.values.fold(
     <SourceDto>[],
@@ -102,7 +115,7 @@ AsyncValue<List<MigrationQuickSearchResults>> migrationGlobalSearchResults(
   for (SourceDto source in sourceList) {
     if (source.id.isNotBlank) {
       final mangaList = ref.watch(
-        migrationSourceQuickSearchMangaListProvider(source.id, query: query),
+        migrationSourceQuickSearchMangaListProvider((sourceId: source.id, query: query)),
       );
       sourceMangaListPairList.add((mangaList: mangaList, source: source));
     }
@@ -111,8 +124,14 @@ AsyncValue<List<MigrationQuickSearchResults>> migrationGlobalSearchResults(
   return sourceMapData.copyWithData((_) => sourceMangaListPairList);
 }
 
+// GRAPHQL_CODEGEN_BUG
+final migrationGlobalSearchResultsProvider = Provider.autoDispose.family
+  <AsyncValue<List<MigrationQuickSearchResults>>, String?>(
+    (ref, query) => migrationGlobalSearchResults(ref, query: query)
+);
+
 @riverpod
-class MigrationExecution extends _$MigrationExecution {
+class MigrationExecution extends Notifier<MigrationProgress?> {
   @override
   MigrationProgress? build() => null;
 
@@ -219,15 +238,15 @@ class MigrationExecution extends _$MigrationExecution {
       int fromMangaId, int toMangaId) async {
     try {
       // Invalidate manga details for both source and target manga
-      ref.invalidate(mangaWithIdProvider(mangaId: fromMangaId));
-      ref.invalidate(mangaWithIdProvider(mangaId: toMangaId));
+      ref.invalidate(mangaWithIdProvider(fromMangaId));
+      ref.invalidate(mangaWithIdProvider(toMangaId));
 
       // Invalidate chapter lists for both manga (needed for unread count refresh)
-      ref.invalidate(mangaChapterListProvider(mangaId: fromMangaId));
-      ref.invalidate(mangaChapterListProvider(mangaId: toMangaId));
+      ref.invalidate(mangaChapterListProvider(fromMangaId));
+      ref.invalidate(mangaChapterListProvider(toMangaId));
 
       // Invalidate all category manga lists to refresh library
-      final categories = ref.read(categoryControllerProvider).valueOrNull ?? [];
+      final categories = ref.read(categoryControllerProvider).asData?.value ?? [];
       for (final category in categories) {
         ref.invalidate(categoryMangaListProvider(category.id));
       }
@@ -243,7 +262,7 @@ class MigrationExecution extends _$MigrationExecution {
 }
 
 @riverpod
-class MigrationSearchQuery extends _$MigrationSearchQuery {
+class MigrationSearchQuery extends Notifier<String> {
   @override
   String build() => '';
 
@@ -257,7 +276,7 @@ class MigrationSearchQuery extends _$MigrationSearchQuery {
 }
 
 @riverpod
-class SelectedMigrationSource extends _$SelectedMigrationSource {
+class SelectedMigrationSource extends Notifier<MigrationSource?> {
   @override
   MigrationSource? build() => null;
 
@@ -270,12 +289,11 @@ class SelectedMigrationSource extends _$SelectedMigrationSource {
   }
 }
 
-@riverpod
-class SelectedTargetManga extends _$SelectedTargetManga {
+class SelectedTargetManga extends Notifier<MangaDto?> {
   @override
-  Fragment$MangaDto? build() => null;
+  MangaDto? build() => null;
 
-  void select(Fragment$MangaDto manga) {
+  void select(MangaDto manga) {
     state = manga;
   }
 
@@ -284,8 +302,11 @@ class SelectedTargetManga extends _$SelectedTargetManga {
   }
 }
 
+// GRAPHQL_CODEGEN_BUG
+final selectedTargetMangaProvider = NotifierProvider.autoDispose<SelectedTargetManga, MangaDto?>(SelectedTargetManga.new);
+
 @riverpod
-class MigrationOptions extends _$MigrationOptions {
+class MigrationOptions extends Notifier<MigrationOption> {
   @override
   MigrationOption build() => const MigrationOption();
 

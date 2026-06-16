@@ -9,13 +9,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:intl/intl.dart';
 
 import '../../../utils/extensions/custom_extensions.dart';
-import '../../manga_book/domain/chapter/graphql/__generated__/fragment.graphql.dart';
 import 'history_item.dart';
 
 part 'history_group.freezed.dart';
 
 @freezed
-class HistoryGroup with _$HistoryGroup {
+abstract class HistoryGroup with _$HistoryGroup {
   const factory HistoryGroup({
     required String title,
     required List<HistoryItemDto> items,

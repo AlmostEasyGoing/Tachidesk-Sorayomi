@@ -114,7 +114,7 @@ class AboutScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final toast = ref.watch(toastProvider);
     final aboutAsync = ref.watch(aboutProvider);
-    final about = aboutAsync.valueOrNull;
+    final about = aboutAsync.asData?.value;
     final serverVer = about?.buildType == "Stable"
         ? about?.version
         : "${about?.version}-${about?.revision}";
@@ -125,7 +125,7 @@ class AboutScreen extends HookConsumerWidget {
         aboutAsync.showToastOnError(toast, withMicrotask: true);
       }
       return;
-    }, [aboutAsync.valueOrNull]);
+    }, [aboutAsync.asData?.value]);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.about)),
@@ -201,20 +201,20 @@ class AboutScreen extends HookConsumerWidget {
                 children: [
                   MediaLaunchButton(
                     title: "${context.l10n.gitHub} ",
-                    iconData: FontAwesomeIcons.github,
+                    iconData: FontAwesomeIcons.github.data,
                     url: AppUrls.sorayomiGithubUrl.url,
                     toast: toast,
                   ),
                   if ((about?.discord).isNotBlank)
                     MediaLaunchButton(
                       title: context.l10n.discord,
-                      iconData: FontAwesomeIcons.discord,
+                      iconData: FontAwesomeIcons.discord.data,
                       url: about!.discord,
                       toast: toast,
                     ),
                   MediaLaunchButton(
                     title: context.l10n.reddit,
-                    iconData: FontAwesomeIcons.reddit,
+                    iconData: FontAwesomeIcons.reddit.data,
                     url: AppUrls.tachideskReddit.url,
                     toast: toast,
                   ),

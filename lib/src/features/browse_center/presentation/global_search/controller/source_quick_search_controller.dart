@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../global_providers/global_providers.dart';
 import '../../../../../utils/extensions/custom_extensions.dart';
@@ -14,14 +13,11 @@ import '../../../data/source_repository/source_repository.dart';
 import '../../../domain/source/source_model.dart';
 import '../../source/controller/source_controller.dart';
 
-part 'source_quick_search_controller.g.dart';
-
 typedef QuickSearchResults = ({
   SourceDto source,
   AsyncValue<List<MangaDto>> mangaList
 });
 
-@riverpod
 Future<List<MangaDto>> sourceQuickSearchMangaList(
   Ref ref,
   String sourceId, {
@@ -38,12 +34,17 @@ Future<List<MangaDto>> sourceQuickSearchMangaList(
   return [...?(mangaPage?.mangas)];
 }
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final sourceQuickSearchMangaListProvider =
+    FutureProvider.autoDispose.family<List<MangaDto>, ({ String sourceId, String? query })>(
+      (ref, arg) => sourceQuickSearchMangaList(ref, arg.sourceId, query: arg.query),
+);
+
 AsyncValue<List<QuickSearchResults>> quickSearchResults(Ref ref,
     {String? query}) {
   final sourceMapData = ref.watch(sourceMapFilteredProvider);
 
-  final sourceMap = {...?sourceMapData.valueOrNull}..remove("lastUsed");
+  final sourceMap = {...?sourceMapData.asData?.value}..remove("lastUsed");
   final sourceList = sourceMap.values.fold(
     <SourceDto>[],
     (prev, cur) => [...prev, ...cur],
@@ -52,7 +53,7 @@ AsyncValue<List<QuickSearchResults>> quickSearchResults(Ref ref,
   for (SourceDto source in sourceList) {
     if (source.id.isNotBlank) {
       final mangaList = ref.watch(
-        sourceQuickSearchMangaListProvider(source.id, query: query),
+        sourceQuickSearchMangaListProvider((sourceId: source.id, query: query)),
       );
       sourceMangaListPairList.add((mangaList: mangaList, source: source));
     }
@@ -60,3 +61,9 @@ AsyncValue<List<QuickSearchResults>> quickSearchResults(Ref ref,
 
   return sourceMapData.copyWithData((_) => sourceMangaListPairList);
 }
+
+// GRAPHQL_CODEGEN_BUG
+final quickSearchResultsProvider = Provider.autoDispose.family
+  <AsyncValue<List<QuickSearchResults>>, String?>(
+    (ref, query) => quickSearchResults(ref, query: query)
+);

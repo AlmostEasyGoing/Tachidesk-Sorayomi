@@ -23,14 +23,14 @@ extension AsyncValueExtensions<T> on AsyncValue<T> {
   void showToastOnError(Toast? toast, {bool withMicrotask = false}) {
     if (toast == null) return;
     if (withMicrotask) {
-      Future.microtask(() => (this._showToastOnError(toast)));
+      Future.microtask(() => (_showToastOnError(toast)));
     } else {
-      this._showToastOnError(toast);
+      _showToastOnError(toast);
     }
   }
 
   T? valueOrToast(Toast? toast, {bool withMicrotask = false}) =>
-      (this..showToastOnError(toast, withMicrotask: withMicrotask)).valueOrNull;
+      (this..showToastOnError(toast, withMicrotask: withMicrotask)).asData?.value;
 
   Widget showUiWhenData(
     BuildContext context,

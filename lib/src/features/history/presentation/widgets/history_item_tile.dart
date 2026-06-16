@@ -219,7 +219,7 @@ class HistoryItemTile extends ConsumerWidget {
     ref.read(mangaChapterFilterUnreadProvider);
     ref.read(mangaChapterFilterDownloadedProvider);
     ref.read(mangaChapterFilterBookmarkedProvider);
-    ref.read(mangaChapterFilterScanlatorProvider(mangaId: item.mangaId));
+    ref.read(mangaChapterFilterScanlatorProvider(item.mangaId));
   }
 
   void _navigateToReader(BuildContext context, WidgetRef ref) {
@@ -260,16 +260,17 @@ class HistoryItemTile extends ConsumerWidget {
 
     // Manually set up the listener.
     subscription = ref.listenManual(
-      mangaChapterListWithFilterProvider(mangaId: item.mangaId),
+      mangaChapterListWithFilterProvider(item.mangaId),
       (previous, next) {
         // We only care when the state becomes data.
         if (next is AsyncData<List<dynamic>?>) {
           // Now that the filtered list is ready, get the next chapter.
           final nextPrevChapterPair = ref.read(
-            getNextAndPreviousChaptersProvider(
+            getNextAndPreviousChaptersProvider((
               mangaId: item.mangaId,
               chapterId: item.id,
-            ),
+              shouldAscSort: null
+            )),
           );
           // If a next chapter exists, use it. Otherwise, fall back to the current chapter.
           navigateAndCleanup(nextPrevChapterPair?.first?.id ?? item.id);
@@ -285,7 +286,7 @@ class HistoryItemTile extends ConsumerWidget {
     _ensurePreferenceProvidersInitialized(ref);
     // 2. Refresh the base list, which will eventually trigger our listener.
     await ref
-        .read(mangaChapterListProvider(mangaId: item.mangaId).notifier)
+        .read(mangaChapterListProvider(item.mangaId).notifier)
         .refresh();
 
     // Set a timeout to prevent getting stuck indefinitely.

@@ -63,7 +63,7 @@ class ServerScreen extends ConsumerWidget {
                     }
                   },
                 ),
-              if (serverSettings.valueOrNull != null) ...[
+              if (serverSettings.asData?.value != null) ...[
                 ServerBindingSection(serverBindingDto: serverSettings.value!),
                 SocksProxySection(socksProxyDto: serverSettings.value!),
                 CloudFlareSection(cloudFlareDto: serverSettings.value!),

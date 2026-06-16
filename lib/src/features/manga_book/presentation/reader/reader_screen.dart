@@ -36,9 +36,9 @@ class ReaderScreen extends HookConsumerWidget {
   final bool showReaderLayoutAnimation;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mangaProvider = mangaWithIdProvider(mangaId: mangaId);
-    final chapterProviderWithIndex = chapterProvider(chapterId: chapterId);
-    final chapterPages = ref.watch(chapterPagesProvider(chapterId: chapterId));
+    final mangaProvider = mangaWithIdProvider(mangaId);
+    final chapterProviderWithIndex = chapterProvider(chapterId);
+    final chapterPages = ref.watch(chapterPagesProvider(chapterId));
     final manga = ref.watch(mangaProvider);
     final chapter = ref.watch(chapterProviderWithIndex);
     final defaultReaderMode = ref.watch(readerModeKeyProvider);
@@ -47,8 +47,8 @@ class ReaderScreen extends HookConsumerWidget {
     final debounce = useRef<Timer?>(null);
 
     final updateLastRead = useCallback((int currentPage) async {
-      final chapterValue = chapter.valueOrNull;
-      final chapterPagesValue = chapterPages.valueOrNull;
+      final chapterValue = chapter.asData?.value;
+      final chapterPagesValue = chapterPages.asData?.value;
       if (chapterValue == null || chapterPagesValue == null) return;
 
       // Use the actual loaded pages count, not the chapter's pageCount metadata
@@ -70,12 +70,12 @@ class ReaderScreen extends HookConsumerWidget {
 
       // Invalidate history to refresh the reading progress
       ref.invalidate(readingHistoryProvider);
-    }, [chapter.valueOrNull, chapterPages.valueOrNull]);
+    }, [chapter.asData?.value, chapterPages.asData?.value]);
 
     final onPageChanged = useCallback<AsyncValueSetter<int>>(
       (int index) async {
-        final chapterValue = chapter.valueOrNull;
-        final chapterPagesValue = chapterPages.valueOrNull;
+        final chapterValue = chapter.asData?.value;
+        final chapterPagesValue = chapterPages.asData?.value;
         if (chapterValue == null || chapterPagesValue == null) return;
 
         // Skip if chapter is already read or if we're going backwards
@@ -117,7 +117,7 @@ class ReaderScreen extends HookConsumerWidget {
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) {
           ref.invalidate(chapterProviderWithIndex);
-          ref.invalidate(mangaChapterListProvider(mangaId: mangaId));
+          ref.invalidate(mangaChapterListProvider(mangaId));
         }
       },
       child: ScrollConfiguration(

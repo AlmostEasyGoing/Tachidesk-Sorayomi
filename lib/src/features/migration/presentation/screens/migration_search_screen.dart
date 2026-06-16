@@ -41,19 +41,19 @@ class MigrationSearchScreen extends HookConsumerWidget {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           searchController.text = initialQuery;
           ref.read(migrationSearchQueryProvider.notifier).update(initialQuery);
-          ref.read(migrationSearchProvider(
+          ref.read(migrationSearchProvider((
             sourceId: targetSource.id,
             query: initialQuery,
-          ).future);
+          )).future);
         });
       }
       return null;
     }, []);
 
-    final searchResultsAsync = ref.watch(migrationSearchProvider(
+    final searchResultsAsync = ref.watch(migrationSearchProvider((
       sourceId: targetSource.id,
       query: searchQuery,
-    ));
+    )));
 
     return Scaffold(
       appBar: AppBar(
@@ -83,10 +83,10 @@ class MigrationSearchScreen extends HookConsumerWidget {
               },
               onSubmitted: (query) {
                 if (query.trim().isNotEmpty) {
-                  ref.read(migrationSearchProvider(
+                  ref.read(migrationSearchProvider((
                     sourceId: targetSource.id,
                     query: query.trim(),
-                  ).future);
+                  )).future);
                 }
               },
             ),
@@ -230,10 +230,10 @@ class MigrationSearchScreen extends HookConsumerWidget {
                     ElevatedButton(
                       onPressed: () {
                         if (searchQuery.isNotEmpty) {
-                          ref.read(migrationSearchProvider(
+                          ref.read(migrationSearchProvider((
                             sourceId: targetSource.id,
                             query: searchQuery,
-                          ).future);
+                          )).future);
                         }
                       },
                       child: Text(l10n.retry),

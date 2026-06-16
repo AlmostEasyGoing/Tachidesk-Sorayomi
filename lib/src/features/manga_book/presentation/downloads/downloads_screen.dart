@@ -42,7 +42,7 @@ class DownloadsScreen extends ConsumerWidget {
       floatingActionButton: showDownloadsFAB
           ? DownloadsFab(
               status:
-                  downloadsGlobalStatus.valueOrNull ?? DownloaderState.STARTED)
+                  downloadsGlobalStatus.asData?.value ?? DownloaderState.STARTED)
           : null,
       body: downloadsGlobalStatus.showUiWhenData(
         context,

@@ -23,17 +23,23 @@ class SourceMangaListView extends ConsumerWidget {
   const SourceMangaListView({
     super.key,
     required this.toggleFavorite,
-    required this.controller,
+    required this.state,
+    required this.fetchNextPage,
+    // required this.onItemUpdated,
     this.source,
   });
+
   final Future<AsyncValue?> Function(MangaDto) toggleFavorite;
-  final PagingController<int, MangaDto> controller;
+  final PagingState<int, MangaDto> state;
+  final NextPageCallback fetchNextPage;
+  // final void Function(int, MangaDto) onItemUpdated;
   final SourceDto? source;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PagedListView(
-      pagingController: controller,
+      state: state,
+      fetchNextPage: fetchNextPage,
       builderDelegate: PagedChildBuilderDelegate<MangaDto>(
         firstPageProgressIndicatorBuilder: (context) =>
             const CenterSorayomiShimmerIndicator(),
@@ -51,7 +57,8 @@ class SourceMangaListView extends ConsumerWidget {
               padding: KEdgeInsets.h8.size,
               child: Shimmer.fromColors(
                 baseColor: context.colorScheme.surface,
-                highlightColor: context.theme.indicatorColor,
+                highlightColor: context.theme.tabBarTheme.indicatorColor
+                    ?? context.theme.colorScheme.primary,
                 child: Container(
                   width: context.width * .3,
                   decoration: BoxDecoration(
@@ -62,20 +69,20 @@ class SourceMangaListView extends ConsumerWidget {
                 ),
               ),
             ),
-            const Spacer()
+            const Spacer(),
           ],
         ),
         firstPageErrorIndicatorBuilder: (context) => Emoticons(
-          title: controller.error.toString(),
+          title: state.error.toString(),
           button: TextButton(
-            onPressed: () => controller.refresh(),
+            onPressed: fetchNextPage,
             child: Text(context.l10n.retry),
           ),
         ),
         noItemsFoundIndicatorBuilder: (context) => Emoticons(
           title: context.l10n.noMangaFound,
           button: TextButton(
-            onPressed: () => controller.refresh(),
+            onPressed: fetchNextPage,
             child: Text(context.l10n.refresh),
           ),
         ),
@@ -85,14 +92,13 @@ class SourceMangaListView extends ConsumerWidget {
             final value = await toggleFavorite(item);
             if (value == null) return;
             if (value is! AsyncError) {
-              final items = [...?controller.itemList];
-              items[index] = item.copyWith(inLibrary: !item.inLibrary.ifNull());
-              controller.itemList = items;
+              // onItemUpdated(
+              //   index,
+              //   item.copyWith(inLibrary: !item.inLibrary.ifNull()),
+              // );
             }
           },
-          onPressed: () {
-            MangaRoute(mangaId: item.id).push(context);
-          },
+          onPressed: () => MangaRoute(mangaId: item.id).push(context),
         ),
       ),
     );

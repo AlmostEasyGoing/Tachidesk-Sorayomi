@@ -20,7 +20,7 @@ class MangaChapterFilter extends ConsumerWidget {
     final scanlatorList =
         ref.watch(mangaScanlatorListProvider(mangaId: mangaId));
     final selectedScanlator =
-        ref.watch(mangaChapterFilterScanlatorProvider(mangaId: mangaId));
+        ref.watch(mangaChapterFilterScanlatorProvider(mangaId));
     return ListView(
       children: [
         CustomCheckboxListTile(
@@ -53,9 +53,9 @@ class MangaChapterFilter extends ConsumerWidget {
             value: MangaMetaKeys.scanlator.key,
             groupValue: selectedScanlator,
             onChanged: (val) => ref
-                .read(mangaChapterFilterScanlatorProvider(mangaId: mangaId)
+                .read(mangaChapterFilterScanlatorProvider(mangaId)
                     .notifier)
-                .update(val),
+                .updateScanlator(val),
           ),
           for (final scanlator in scanlatorList)
             RadioListTile(
@@ -63,9 +63,9 @@ class MangaChapterFilter extends ConsumerWidget {
               value: scanlator,
               groupValue: selectedScanlator,
               onChanged: (val) => ref
-                  .read(mangaChapterFilterScanlatorProvider(mangaId: mangaId)
+                  .read(mangaChapterFilterScanlatorProvider(mangaId)
                       .notifier)
-                  .update(val),
+                  .updateScanlator(val),
             ),
         ],
       ],

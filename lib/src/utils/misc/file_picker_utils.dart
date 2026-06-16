@@ -12,7 +12,7 @@ abstract class FilePickerUtils {
     BuildContext? context,
     List<String>? extensions,
   }) async {
-    final pickedFiles = await FilePicker.platform.pickFiles(
+    final pickedFiles = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: extensions,
     );

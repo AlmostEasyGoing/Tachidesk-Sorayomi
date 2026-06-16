@@ -29,7 +29,7 @@ class MigrationGlobalSearchScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final query = useState<String?>(sourceManga.title);
     final migrationSearchResult =
-        ref.watch(migrationGlobalSearchResultsProvider(query: query.value));
+        ref.watch(migrationGlobalSearchResultsProvider(query.value));
 
     // Auto-search with source manga title on screen load
     useEffect(() {

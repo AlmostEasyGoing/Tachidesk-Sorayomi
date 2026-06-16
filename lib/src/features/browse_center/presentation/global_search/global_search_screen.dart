@@ -23,7 +23,7 @@ class GlobalSearchScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final query = useState(initialQuery);
     final quickSearchResult =
-        ref.watch(quickSearchResultsProvider(query: query.value));
+        ref.watch(quickSearchResultsProvider(query.value));
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.globalSearch),

@@ -23,7 +23,7 @@ class UpdateStatusSummaryDialog extends ConsumerWidget {
     final statusUpdate = ref.watch(updateSummaryProvider);
     final statusUpdateStream = ref.watch(updatesSocketProvider);
     final AsyncValue<UpdateStatusDto?> finalStatus =
-        (statusUpdateStream.valueOrNull?.total.isGreaterThan(0)).ifNull()
+        (statusUpdateStream.asData?.value?.total.isGreaterThan(0)).ifNull()
             ? statusUpdateStream
             : statusUpdate;
     return Scaffold(
@@ -83,8 +83,8 @@ class UpdateStatusExpansionTile extends StatelessWidget {
     return ExpansionTile(
       title: Text("$title (${mangas.length.padLeft()})"),
       initiallyExpanded: initiallyExpanded,
-      textColor: context.theme.indicatorColor,
-      iconColor: context.theme.indicatorColor,
+      textColor: context.theme.tabBarTheme.indicatorColor,
+      iconColor: context.theme.tabBarTheme.indicatorColor,
       shape: const RoundedRectangleBorder(),
       children: mangas
           .map((e) => MangaCoverListTile(

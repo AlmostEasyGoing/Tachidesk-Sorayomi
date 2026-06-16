@@ -16,20 +16,24 @@ import '../../../domain/source/source_model.dart';
 
 part 'source_manga_controller.g.dart';
 
-@riverpod
 Future<SourceDto?> source(Ref ref, String sourceId) =>
     ref.watch(sourceRepositoryProvider).getSource(sourceId);
 
-@riverpod
+// GRAPHQL_CODEGEN_BUG
+final sourceProvider = FutureProvider.autoDispose.family<SourceDto?, String>(source);
+
 Future<List<Filter>?> baseSourceMangaFilterList(Ref ref, String sourceId) =>
     ref.read(sourceRepositoryProvider).getSourceFilter(sourceId);
 
+// GRAPHQL_CODEGEN_BUG
+final baseSourceMangaFilterListProvider = FutureProvider.autoDispose.family<List<Filter>?, String>(baseSourceMangaFilterList);
+
 @riverpod
-class SourceDisplayMode extends _$SourceDisplayMode
+class SourceDisplayMode extends Notifier<DisplayMode?>
     with SharedPreferenceEnumClientMixin<DisplayMode> {
   @override
   DisplayMode? build() => initialize(
-        DBKeys.sourceDisplayMode,
-        enumList: DisplayMode.sourceDisplayList,
-      );
+    DBKeys.sourceDisplayMode,
+    enumList: DisplayMode.sourceDisplayList,
+  );
 }

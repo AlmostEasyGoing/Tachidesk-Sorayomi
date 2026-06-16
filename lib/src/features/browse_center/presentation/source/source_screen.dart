@@ -22,7 +22,7 @@ class SourceScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sourceMapData = ref.watch(sourceMapFilteredProvider);
 
-    final sourceMap = {...?sourceMapData.valueOrNull};
+    final sourceMap = {...?sourceMapData.asData?.value};
     final localSource = sourceMap.remove("localsourcelang");
     final lastUsed = sourceMap.remove("lastUsed");
     final allSource = sourceMap.remove("all");
@@ -39,7 +39,7 @@ class SourceScreen extends HookConsumerWidget {
         withMicrotask: true,
       );
       return;
-    }, [sourceMapData.valueOrNull]);
+    }, [sourceMapData.asData?.value]);
 
     return sourceMapData.showUiWhenData(
       context,

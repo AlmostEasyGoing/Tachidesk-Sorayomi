@@ -107,7 +107,6 @@ GraphQLClient graphQlSubscriptionClient(Ref ref) {
   );
 }
 
-@riverpod
 ValueNotifier<GraphQLClient> graphQlClientNotifier(Ref ref) {
   final notifier = ValueNotifier(ref.watch(graphQlClientProvider));
   // Dispose of the notifier when the provider is destroyed
@@ -118,6 +117,9 @@ ValueNotifier<GraphQLClient> graphQlClientNotifier(Ref ref) {
 
   return notifier;
 }
+
+// Conflicts with graphQlClientProvider in Riverpod V3 in code generation otherwise...
+final graphQlClientNotifierProvider = Provider<ValueNotifier<GraphQLClient>>(graphQlClientNotifier);
 
 @riverpod
 class AuthTypeKey extends _$AuthTypeKey
@@ -153,7 +155,7 @@ class L10n extends _$L10n with SharedPreferenceClientMixin<Locale> {
 }
 
 @riverpod
-SharedPreferences sharedPreferences(ref) => throw UnimplementedError();
+SharedPreferences sharedPreferences(Ref ref) => throw UnimplementedError();
 
 @riverpod
 HiveStore hiveStore(Ref ref) => throw UnimplementedError();

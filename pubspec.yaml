@@ -5,7 +5,7 @@ publish_to: "none"
 version: 0.6.4+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   built_collection: ^5.1.1
@@ -39,7 +39,7 @@ dependencies:
   http: ^1.2.0
   infinite_scroll_pagination: ^5.1.1
   intl: ^0.20.2
-  json_annotation: ^4.9.0
+  json_annotation: ^4.11.0
   logger: ^2.5.0
   network_info_plus: ^8.1.0
   package_info_plus: ^10.1.0
