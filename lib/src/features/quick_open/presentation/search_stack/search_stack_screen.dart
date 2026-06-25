@@ -33,7 +33,7 @@ class SearchStackScreen extends HookConsumerWidget {
       visible: visible,
       child: Stack(
         children: [
-          if (child != null) child!,
+          ?child,
           if (visible.value)
             GestureDetector(
               onTap: () => visible.value = (false),

@@ -61,7 +61,7 @@ class SearchField extends HookWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ...?actions,
-                if (closeIcon != null) closeIcon,
+                ?closeIcon,
               ],
             ),
           ),

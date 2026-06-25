@@ -67,7 +67,7 @@ class Emoticons extends HookWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
               ),
-            if (button != null) button!,
+            ?button,
           ],
         ),
       ),
