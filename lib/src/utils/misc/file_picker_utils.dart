@@ -17,11 +17,12 @@ abstract class FilePickerUtils {
       allowedExtensions: extensions,
     );
     final file = pickedFiles?.files.first;
+    final fileEmpty = await file?.readAsByteStream().isEmpty ?? true;
     if (context != null && context.mounted) {
       if (file == null ||
           file.name.isBlank ||
-          (kIsWeb && (file.bytes).isBlank ||
-              (!kIsWeb && (file.path).isBlank))) {
+          kIsWeb && fileEmpty ||
+          !kIsWeb && (file.path).isBlank) {
         throw context.l10n.errorFilePick;
       }
       if (extensions.isNotBlank &&
@@ -42,7 +43,7 @@ abstract class FilePickerUtils {
     if (kIsWeb) {
       return MultipartFile.fromBytes(
         newFileName,
-        file.bytes!,
+        await file.readAsBytes(),
         filename: newFileNameWithExtension,
       );
     } else {
