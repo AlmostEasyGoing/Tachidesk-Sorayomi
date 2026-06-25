@@ -48,25 +48,29 @@ class MangaChapterFilter extends ConsumerWidget {
             ),
             dense: true,
           ),
-          RadioListTile(
-            title: Text(context.l10n.allScanlators),
-            value: MangaMetaKeys.scanlator.key,
+          RadioGroup<String>(
             groupValue: selectedScanlator,
             onChanged: (val) => ref
-                .read(mangaChapterFilterScanlatorProvider(mangaId)
-                    .notifier)
-                .updateScanlator(val),
-          ),
-          for (final scanlator in scanlatorList)
-            RadioListTile(
-              title: Text(scanlator),
-              value: scanlator,
-              groupValue: selectedScanlator,
-              onChanged: (val) => ref
                   .read(mangaChapterFilterScanlatorProvider(mangaId)
                       .notifier)
                   .updateScanlator(val),
-            ),
+            child: RadioListTile(
+              title: Text(context.l10n.allScanlators),
+              value: MangaMetaKeys.scanlator.key
+            )
+          ),
+          for (final scanlator in scanlatorList)
+            RadioGroup<String>(
+              onChanged: (val) => ref
+                    .read(mangaChapterFilterScanlatorProvider(mangaId)
+                        .notifier)
+                    .updateScanlator(val),
+              groupValue: selectedScanlator,
+              child: RadioListTile(
+                title: Text(scanlator),
+                value: scanlator
+              )
+            )
         ],
       ],
     );

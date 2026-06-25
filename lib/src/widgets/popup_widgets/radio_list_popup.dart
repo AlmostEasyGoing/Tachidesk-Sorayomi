@@ -62,19 +62,21 @@ class RadioList<T> extends StatelessWidget {
   final String Function(T)? getSubtitle;
 
   Widget getRadioListTile(BuildContext context, T option) {
-    return RadioListTile<T>(
-      activeColor: context.theme.tabBarTheme.indicatorColor,
-      title: Text(
-        getTitle?.call(option) ?? option.toString(),
-      ),
-      subtitle: getSubtitle != null ? (Text(getSubtitle!(option))) : null,
-      value: option,
+    return RadioGroup<T>(
       groupValue: value,
       onChanged: (value) {
         if (value != null) {
           onChange(value);
         }
       },
+      child: RadioListTile<T>(
+        activeColor: context.theme.tabBarTheme.indicatorColor,
+        title: Text(
+          getTitle?.call(option) ?? option.toString(),
+        ),
+        subtitle: getSubtitle != null ? (Text(getSubtitle!(option))) : null,
+        value: option
+      )
     );
   }
 
