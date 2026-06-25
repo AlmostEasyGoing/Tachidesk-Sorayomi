@@ -37,7 +37,7 @@ class UpdatesScreen extends HookConsumerWidget {
 
     Future<void> fetchNextPage() async {
       final state = pagingState.value;
-      if (state.isLoading || state.hasNextPage) return;
+      if (state.isLoading || !state.hasNextPage) return;
 
       pagingState.value = state.copyWith(isLoading: true);
 
