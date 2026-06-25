@@ -208,7 +208,7 @@ class ContinuousReaderMode extends HookConsumerWidget {
                   : BoxFit.fitHeight,
               appendApiToUrl: false,
               imageUrl: chapterPages.pages[index],
-              progressIndicatorBuilder: (_, __, downloadProgress) => Center(
+              progressIndicatorBuilder: (_, _, downloadProgress) => Center(
                 child: CircularProgressIndicator(
                   value: downloadProgress.progress,
                 ),
